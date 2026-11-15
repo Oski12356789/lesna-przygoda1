@@ -31,18 +31,22 @@ jobs:
           yes | "$SDK" --licenses || true
           "$SDK" --install "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Rozpakuj projekt
+        run: |
+          unzip -o Lesna_Przygoda_Android_Project_v2.zip -d projekt
+
       - name: Znajdź projekt
         id: project
         run: |
-          FILE=$(find . -name settings.gradle -type f | head -n 1)
+          FILE=$(find projekt -name settings.gradle -type f | head -n 1)
           if [ -z "$FILE" ]; then
-            echo "Nie znaleziono settings.gradle"
-            find . -maxdepth 5 -type f
+            echo "Nie znaleziono settings.gradle w ZIP!"
+            find projekt -maxdepth 5 -type f
             exit 1
           fi
           DIR=$(dirname "$FILE")
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
-          echo "Projekt: $DIR"
+          echo "Znaleziono: $DIR"
 
       - name: Przygotuj Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -60,4 +64,3 @@ jobs:
           name: Lesna-Przygoda-APK
           path: "**/app/build/outputs/apk/debug/app-debug.apk"
           if-no-files-found: error
-
