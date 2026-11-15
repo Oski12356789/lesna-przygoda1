@@ -23,34 +23,33 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Przygotuj Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Akceptuj licencje Android
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDK" --licenses || true
-          "$SDK" "platforms;android-35" "build-tools;35.0.0"
+          "$SDK" --install "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Znajdź projekt Android
+      - name: Znajdź projekt
         id: project
         run: |
           FILE=$(find . -name settings.gradle -type f | head -n 1)
           if [ -z "$FILE" ]; then
-            echo "Nie znaleziono settings.gradle!"
-            find . -maxdepth 4 -type f
+            echo "Nie znaleziono settings.gradle"
+            find . -maxdepth 5 -type f
             exit 1
           fi
           DIR=$(dirname "$FILE")
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
-          echo "Znaleziono projekt: $DIR"
+          echo "Projekt: $DIR"
 
-      - name: Zainstaluj Gradle
+      - name: Przygotuj Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
 
-      - name: Zbuduj APK
+      - name: Buduj APK
         run: |
           cd "${{ steps.project.outputs.dir }}"
           gradle assembleDebug
@@ -61,3 +60,4 @@ jobs:
           name: Lesna-Przygoda-APK
           path: "**/app/build/outputs/apk/debug/app-debug.apk"
           if-no-files-found: error
+
